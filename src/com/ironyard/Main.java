@@ -128,25 +128,25 @@ public class Main {
                 }
                 ));//end Spark.post /editPost
 
-//        //delete post
-//        Spark.post(
-//                "/deletePost",
-//                ((request, response) -> {
-//                    Session session = request.session();
-//                    String name = session.attribute("loginName");
-//
-//                    User user = selectUser(conn, name);
-//
-//                    String deletePost = request.queryParams("deletePost");
-//
-//                    int x = Integer.parseInt(deletePost);
-//                    selectPost(conn, (x - 1));
-//                    deletePost();
-//
-//                    response.redirect("/");
-//                    return "";
-//                })
-//        );//end Spark.post /deletePost
+        //delete post
+        Spark.post(
+                "/deletePost",
+                ((request, response) -> {
+                    Session session = request.session();
+                    String name = session.attribute("loginName");
+
+                    User user = selectUser(conn, name);
+
+                    String deletePost = request.queryParams("deletePost");
+
+                    int x = Integer.parseInt(deletePost);
+                    selectPost(conn, (x - 1));
+                    //deletePost();
+
+                    response.redirect("/");
+                    return "";
+                })
+        );//end Spark.post /deletePost
 
         Spark.post(
                 "/logout",
@@ -219,7 +219,7 @@ public class Main {
     }
 
     public static void insertPost(Connection conn, int userId, String author, String text) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("INSERT INTO messages VALUES (NULL, ?, ?, ?)");
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO posts VALUES (NULL, ?, ?, ?)");
         stmt.setInt(1, userId);
         stmt.setString(2, author);
         stmt.setString(3, text);
@@ -227,8 +227,8 @@ public class Main {
     }
 
     public static Twitter selectPost(Connection conn, int id) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM messages " +
-                "INNER JOIN users ON messages.userID = users.id WHERE messages.id = ?");
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM posts " +
+                "INNER JOIN users ON posts.userID = users.id WHERE posts.id = ?");
         stmt.setInt(1, id);
         ResultSet results = stmt.executeQuery();
         if (results.next()) {
@@ -239,13 +239,6 @@ public class Main {
         }
         return null;
     }
-
-//    public static Twitter deletePost(Connection conn, int id) throws SQLException {
-//        PreparedStatement stmt = conn.prepareStatement("REMOVE FROM posts VALUES (?)");
-//        stmt.execute();
-//    }
-//    return null;
-//}
 
     public static ArrayList<User> selectUsers (Connection conn, String name) throws SQLException {
         ArrayList<User> users = new ArrayList<>();
@@ -260,7 +253,7 @@ public class Main {
         ArrayList<Twitter> posts = new ArrayList<>();
 
         PreparedStatement stmt = conn.prepareStatement("SELECT * FROM posts " +
-                "INNER JOIN users ON posts.userID = users.id WHERE posts.reply_Id = ?");
+                "INNER JOIN users ON posts.userID = users.id WHERE posts.id = ?");
         stmt.setInt(1, id);
         ResultSet results = stmt.executeQuery();
 

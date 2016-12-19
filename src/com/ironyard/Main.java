@@ -121,7 +121,7 @@ public class Main {
                     selectPost(conn, (x - 1));
 
                     //repost edited post
-                    insertPost(conn, (x - 1), (x - 1), "");
+                    insertPost(conn, (x - 1), "Alice", "");
 
                     response.redirect("/");
                     return "";
@@ -174,10 +174,10 @@ public class Main {
     }
 
     static void addTestPosts(Connection conn) throws SQLException {
-        insertPost(conn, 1, -1, "Hello world!");
-        insertPost(conn, 2, -1, "This is another thread.");
-        insertPost(conn, 3, 1, "Cool thread, Alice!");
-        insertPost(conn, 1, 2, "Thanks");
+        insertPost(conn, 1, "Alice", "Hello world!");
+        insertPost(conn, 2, "Bob", "This is another thread.");
+        insertPost(conn, 3, "Charlie", "Cool thread, Alice!");
+        insertPost(conn, 1, "Alice", "Thanks");
     }
 
     public static void selectTestPosts(Connection conn) throws SQLException {
@@ -221,7 +221,7 @@ public class Main {
     public static void insertPost(Connection conn, int userId, String author, String text) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("INSERT INTO messages VALUES (NULL, ?, ?, ?)");
         stmt.setInt(1, userId);
-        stmt.setInt(2, author);
+        stmt.setString(2, author);
         stmt.setString(3, text);
         stmt.execute();
     }

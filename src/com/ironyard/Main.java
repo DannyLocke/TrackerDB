@@ -36,18 +36,30 @@ public class Main {
 
                 ((request, response) -> {
                     Session session = request.session();
+
+                    String id = session.attribute("idNum");
                     String userName = session.attribute("loginName");
                     String userPassword = session.attribute("loginPassword");
-                    User user = selectUser(conn, userName);
+                    String post = session.attribute("createPost");
 
                     HashMap n = new HashMap();
-                    //ArrayList<User>  users = selectUsers(conn, name);
+
+                    //if there's no username in the db, go to login page
+                    if(userName == null){
+                        return new ModelAndView(n, "home.html");
+                    }
+
+                    User user = selectUser(conn, userName);
+
+                    ArrayList<User>  users = selectUsers(conn);
 
                     //create new user/password
                     n.put("loginName", userName);
                     n.put("loginPassword", userPassword);
-                    //n.put("createPost", user.twitterEntries);
-                    return new ModelAndView(n, "home.html");
+                    n.put("createPost", post);
+
+                    //after new user is created, go to post page
+                    return new ModelAndView(n, "post.html");
                 }),
                 new MustacheTemplateEngine()
         );//end Spark.get "/"
@@ -67,8 +79,9 @@ public class Main {
                     //create object with name & password
                     User user = selectUser(conn, name);
                     if (user == null) {
-                        insertUser(conn, name, "");
-                    } else if (!user.password.equals(password)) {
+                        insertUser(conn, name, password);
+                    }
+                    else if (!user.password.equals(password)) {
                         throw new Exception("Wrong password.");
                     }
 
@@ -85,21 +98,19 @@ public class Main {
                 ((request, response) -> {
                     Session session = request.session();
                     String name = session.attribute("loginName");
-
-//                    if(user == null){
-//                        throw new Exception("Please log in first");
-//                    }
+                    if(name == null){
+                        throw new Exception("Please log in first");
+                    }
 
                     String text = request.queryParams("createPost");
-                    //String replyId = request.queryParams("replyId");
-
-                    //int replyIdNum = Integer.valueOf(replyId);
+                    if(text == null){
+                        throw new Exception("Didn't get necessary query parameters.");
+                    }
 
                     User user = selectUser(conn, name);
+                    insertPost(conn, user.id, name, text);
 
-                    //insertPost(conn, 1, replyIdNum, text);
-
-                    response.redirect("/");
+                    response.redirect(request.headers("Referer"));
                     return "";
                 })
         );//end Spark.post /createPost
@@ -206,23 +217,13 @@ public class Main {
         stmt.execute();
     }
 
-    public static User selectUser(Connection conn, String name) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE name = ?");
-        stmt.setString(1, name);
-        ResultSet results = stmt.executeQuery();
-        if (results.next()) {
-            int id = results.getInt("id");
-            String password = results.getString("password");
-            return new User(id, name, password);
-        }
-        return null;
-    }
 
-    public static void insertPost(Connection conn, int userId, String author, String text) throws SQLException {
+
+    public static void insertPost(Connection conn, int userId, String author, String post) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("INSERT INTO posts VALUES (NULL, ?, ?, ?)");
         stmt.setInt(1, userId);
         stmt.setString(2, author);
-        stmt.setString(3, text);
+        stmt.setString(3, post);
         stmt.execute();
     }
 
@@ -240,11 +241,33 @@ public class Main {
         return null;
     }
 
-    public static ArrayList<User> selectUsers (Connection conn, String name) throws SQLException {
+    public static User selectUser(Connection conn, String name) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE name = ?");
+        stmt.setString(1, name);
+        ResultSet results = stmt.executeQuery();
+        if (results.next()) {
+            int id = results.getInt("id");
+            //String name = results.getString("name");
+            String password = results.getString("password");
+            return new User(id, name, password);
+        }
+        return null;
+    }
+
+    public static ArrayList<User> selectUsers (Connection conn) throws SQLException {
         ArrayList<User> users = new ArrayList<>();
 
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM home" +
-                "INNER JOIN users ON u");
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users");
+        //stmt.setString(1, name);
+        ResultSet results = stmt.executeQuery();
+
+        while(results.next()){
+            int id = results.getInt("users.id");
+            String userName = results.getString("users.name");
+            String userPassword = results.getString("users.password");
+            User user = new User (id, userName, userPassword);
+            users.add(user);
+        }
 
         return users;
     }

@@ -178,3 +178,6 @@ SELECT * FROM posts INNER JOIN users ON posts.userID = users.id WHERE posts.repl
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.lang.reflect.Method.invoke(Method.java:498)
 	at com.intellij.rt.execution.application.AppMain.main(AppMain.java:147)
+2016-12-20 13:50:09 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "DELETE *[*] FROM USERS"; expected "identifier"; SQL statement:
+DELETE * FROM USERS [42001-191]

@@ -7,12 +7,12 @@ public class Twitter {
 
     int id;
     String author;
-    String text;
+    String post;
 
     public Twitter (int id, int replyId, String author, String text) {
         this.id = id;
         this.author = author;
-        this.text = text;
+        this.post = text;
     }
 
     public Twitter() {
@@ -35,10 +35,10 @@ public class Twitter {
     }
 
     public String getText() {
-        return text;
+        return post;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setText(String post) {
+        this.post = post;
     }
 }//end class Twitter

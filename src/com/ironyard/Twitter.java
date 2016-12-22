@@ -9,10 +9,10 @@ public class Twitter {
     String author;
     String post;
 
-    public Twitter (int id, int replyId, String author, String text) {
+    public Twitter (int id, int replyId, String author, String post) {
         this.id = id;
         this.author = author;
-        this.post = text;
+        this.post = post;
     }
 
     public Twitter() {

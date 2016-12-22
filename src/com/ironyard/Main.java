@@ -5,8 +5,6 @@ import spark.ModelAndView;
 import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
-
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,10 +35,7 @@ public class Main {
                 ((request, response) -> {
                     Session session = request.session();
 
-                    String id = session.attribute("idNum");
                     String userName = session.attribute("loginName");
-                    String userPassword = session.attribute("loginPassword");
-                    String post = session.attribute("createPost");
 
                     HashMap n = new HashMap();
 
@@ -51,12 +46,12 @@ public class Main {
 
                     User user = selectUser(conn, userName);
 
+                    ArrayList<Twitter> tweets = selectPosts(conn, user.id);
                     ArrayList<User>  users = selectUsers(conn);
 
                     //create new user/password
                     n.put("loginName", userName);
-                    n.put("loginPassword", userPassword);
-                    n.put("createPost", post);
+                    n.put("createPost", tweets);
 
                     //after new user is created, go to post page
                     return new ModelAndView(n, "post.html");
@@ -128,11 +123,9 @@ public class Main {
                     String num = request.queryParams("num");
                     int x = Integer.parseInt(num);
 
-                    //specifies which post to select and edit
-                    selectPost(conn, (x - 1));
+                    String updatePost = request.queryParams("updatePost");
 
-                    //repost edited post
-                    insertPost(conn, (x - 1), "Alice", "");
+                    updatePosts(conn, x, updatePost);
 
                     response.redirect("/");
                     return "";
@@ -151,8 +144,7 @@ public class Main {
                     String deletePost = request.queryParams("deletePost");
 
                     int x = Integer.parseInt(deletePost);
-                    selectPost(conn, (x - 1));
-                    //deletePost();
+                    deletePosts(conn, x);
 
                     response.redirect("/");
                     return "";
@@ -276,7 +268,7 @@ public class Main {
         ArrayList<Twitter> posts = new ArrayList<>();
 
         PreparedStatement stmt = conn.prepareStatement("SELECT * FROM posts " +
-                "INNER JOIN users ON posts.userID = users.id WHERE posts.id = ?");
+                "INNER JOIN users ON posts.userID = users.id WHERE users.id=?");
         stmt.setInt(1, id);
         ResultSet results = stmt.executeQuery();
 
@@ -288,6 +280,19 @@ public class Main {
             posts.add(post);
         }
         return posts;
+    }
+
+    public static void updatePosts (Connection conn, int id, String text) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("UPDATE posts SET text=? WHERE id=?");
+        stmt.setInt(2, id);
+        stmt.setString(1, text);
+        stmt.execute();
+    }
+
+    public static void deletePosts (Connection conn, int id) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("DELETE FROM posts WHERE id=?");
+        stmt.setInt(1, id);
+        stmt.execute();
     }
 
 }//end class Main
